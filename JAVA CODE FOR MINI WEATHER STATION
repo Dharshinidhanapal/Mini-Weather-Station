@@ -1,0 +1,121 @@
+import java.sql.*;
+import java.util.Scanner;
+
+public class Main {
+    private static final String DB_URL = "jdbc:mysql://localhost:3306/weatherdb"; // make sure DB name is correct
+    private static final String DB_USER = "root"; // change if different
+    private static final String DB_PASSWORD = "";  // your actual MySQL password
+
+    public static void main(String[] args) {
+        try (Scanner scanner = new Scanner(System.in);
+             Connection conn = DriverManager.getConnection(DB_URL, DB_USER, DB_PASSWORD)) {
+
+            createTableIfNotExists(conn);
+
+            while (true) {
+                System.out.println("\n=== Weather Tracker ===");
+                System.out.println("1. Add Weather Data");
+                System.out.println("2. View Weather History");
+                System.out.println("3. Exit");
+                System.out.print("Choose: ");
+
+                int choice = scanner.nextInt();
+                scanner.nextLine();  // Consume newline
+
+                switch (choice) {
+                    case 1:
+                        addWeatherData(conn, scanner);
+                        break;
+                    case 2:
+                        viewWeatherHistory(conn);
+                        break;
+                    case 3:
+                        System.out.println("Exiting...");
+                        return;
+                    default:
+                        System.out.println("Invalid choice!");
+                }
+            }
+        } catch (SQLException e) {
+            System.out.println("Database error: " + e.getMessage());
+        }
+    }
+
+    private static void createTableIfNotExists(Connection conn) throws SQLException {
+        String sql = "CREATE TABLE IF NOT EXISTS weather_data (" +
+                "id INT AUTO_INCREMENT PRIMARY KEY, " +
+                "location VARCHAR(100), " +
+                "temperature DECIMAL(5,2), " +
+                "humidity DECIMAL(5,2), " +
+                "pressure DECIMAL(7,2), " +
+                "wind_speed DECIMAL(5,2), " +
+                "wind_direction VARCHAR(3), " +
+                "`condition` VARCHAR(50), " +  // keyword fixed
+                "timestamp TIMESTAMP DEFAULT CURRENT_TIMESTAMP)";
+        conn.createStatement().execute(sql);
+    }
+
+    private static void addWeatherData(Connection conn, Scanner scanner) throws SQLException {
+        System.out.print("Enter location: ");
+        String location = scanner.nextLine();
+
+        System.out.print("Temperature (°C): ");
+        double temp = scanner.nextDouble();
+
+        System.out.print("Humidity (%): ");
+        double humidity = scanner.nextDouble();
+
+        System.out.print("Pressure (hPa): ");
+        double pressure = scanner.nextDouble();
+
+        System.out.print("Wind Speed (km/h): ");
+        double windSpeed = scanner.nextDouble();
+
+        scanner.nextLine();  // Consume newline
+        System.out.print("Wind Direction: ");
+        String windDir = scanner.nextLine();
+
+        System.out.print("Weather Condition: ");
+        String condition = scanner.nextLine();
+
+        String sql = "INSERT INTO weather_data (location, temperature, humidity, pressure, " +
+                "wind_speed, wind_direction, `condition`) VALUES (?, ?, ?, ?, ?, ?, ?)";
+
+        try (PreparedStatement pstmt = conn.prepareStatement(sql)) {
+            pstmt.setString(1, location);
+            pstmt.setDouble(2, temp);
+            pstmt.setDouble(3, humidity);
+            pstmt.setDouble(4, pressure);
+            pstmt.setDouble(5, windSpeed);
+            pstmt.setString(6, windDir);
+            pstmt.setString(7, condition);
+
+            pstmt.executeUpdate();
+            System.out.println("Weather data saved successfully!");
+        }
+    }
+
+    private static void viewWeatherHistory(Connection conn) throws SQLException {
+        String sql = "SELECT * FROM weather_data ORDER BY timestamp DESC";
+
+        try (Statement stmt = conn.createStatement();
+             ResultSet rs = stmt.executeQuery(sql)) {
+
+            System.out.println("\n=== Weather History ===");
+            System.out.printf("%-20s %-8s %-8s %-8s %-8s %-8s %-15s %s%n",
+                    "Location", "Temp", "Humid", "Press", "Wind", "Dir", "Condition", "Time");
+
+            while (rs.next()) {
+                System.out.printf("%-20s %-8.1f %-8.1f %-8.1f %-8.1f %-8s %-15s %s%n",
+                        rs.getString("location"),
+                        rs.getDouble("temperature"),
+                        rs.getDouble("humidity"),
+                        rs.getDouble("pressure"),
+                        rs.getDouble("wind_speed"),
+                        rs.getString("wind_direction"),
+                        rs.getString("condition"),
+                        rs.getTimestamp("timestamp"));
+            }
+        }
+    }
+}

@@ -1,0 +1,31 @@
+=== Weather Tracker ===
+1. Add Weather Data
+2. View Weather History
+3. Exit
+Choose: 1
+Enter location: karur
+Temperature (°C): 35
+Humidity (%): 40
+Pressure (hPa): 67
+Wind Speed (km/h): 27
+Wind Direction: w
+Weather Condition: sunny
+Weather data saved successfully!
+
+=== Weather Tracker ===
+1. Add Weather Data
+2. View Weather History
+3. Exit
+Choose: 2
+
+=== Weather History ===
+Location             Temp     Humid    Press    Wind     Dir      Condition       Time
+karur                35.0     40.0     67.0     27.0     w        sunny           2025-07-28 10:41:45.0
+karur                34.0     45.0     67.0     23.0     w        sunny           2025-07-28 10:38:02.0
+
+=== Weather Tracker ===
+1. Add Weather Data
+2. View Weather History
+3. Exit
+Choose: 3
+Exiting...
